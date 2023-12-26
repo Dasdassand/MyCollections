@@ -68,23 +68,7 @@ public class MyArrayList<E> implements List<E> {
      */
     @Override
     public Iterator<E> iterator() {
-        return new Iterator<E>() {
-            private int cursor = 0;
-
-            @Override
-            public boolean hasNext() {
-                return cursor != size;
-            }
-
-            @Override
-            public E next() {
-                if (hasNext()) {
-                    cursor++;
-                    return (E) elementData[cursor--];
-                }
-                return null;
-            }
-        };
+        return new MyListIterator(0);
     }
 
     /**
@@ -119,7 +103,7 @@ public class MyArrayList<E> implements List<E> {
      */
     @Override
     public boolean add(E e) {
-        if (size == elementData.length - 1) {
+        if (size == elementData.length) {
             resize();
         }
         elementData[size] = e;
@@ -182,6 +166,7 @@ public class MyArrayList<E> implements List<E> {
 
     /**
      * @param start индекс удалённого элемента
+     * @TODO tetsing this method
      */
     private void moveElements(int start) {
         for (int i = start; i < size - 1; i++) {
@@ -235,7 +220,7 @@ public class MyArrayList<E> implements List<E> {
             return false;
         }
         resize(c.size());
-        moveElementsAddAll(index, c.size());
+        moveElementsAdd(index, c.size());
         for (E e : c) {
             elementData[index] = e;
             index++;
@@ -244,7 +229,7 @@ public class MyArrayList<E> implements List<E> {
         return true;
     }
 
-    private void moveElementsAddAll(int index, int size) {
+    private void moveElementsAdd(int index, int size) {
         int n = 0;
         for (int i = index; i < size; i++) {
             elementData[size + n] = elementData[index];
@@ -272,7 +257,16 @@ public class MyArrayList<E> implements List<E> {
      */
     @Override
     public boolean removeAll(Collection<?> c) {
-        return false;
+        if (size == 0) {
+            return false;
+        }
+        int count = 0;
+        for (Object o :
+                c) {
+            if (remove(c))
+                count++;
+        }
+        return count > 0;
     }
 
     /**
@@ -297,6 +291,34 @@ public class MyArrayList<E> implements List<E> {
      */
     @Override
     public boolean retainAll(Collection<?> c) {
+        if (size == 0) {
+            return false;
+        }
+        Object[] tmp = new Object[size];
+        int count = 0, index;
+        for (Object o :
+                c) {
+            index = getElementIndex(o);
+            if (containsFromIndex(o, index)) {
+                tmp[count] = o;
+                count++;
+            }
+        }
+        if (count > 0) {
+            this.elementData = tmp;
+            this.size = count;
+        }
+        return count > 0;
+    }
+
+    private boolean containsFromIndex(Object e, int index) {
+        if (size == 0 || index == -1) {
+            return false;
+        }
+        for (int i = index; i < size; i++) {
+            if (e.equals(elementData[i]) || elementData[i] == e)
+                return true;
+        }
         return false;
     }
 
@@ -368,7 +390,7 @@ public class MyArrayList<E> implements List<E> {
     @Override
     public E set(int index, E element) {
         if (index > size || index < 0) {
-            return null;
+            throw new IndexOutOfBoundsException();
         }
         var tmpElement = elementData[index];
         elementData[index] = element;
@@ -396,7 +418,15 @@ public class MyArrayList<E> implements List<E> {
      */
     @Override
     public void add(int index, E element) {
-
+        if (index > size || index < 0) {
+            throw new IndexOutOfBoundsException();
+        }
+        if (size == elementData.length) {
+            resize();
+        }
+        moveElementsAdd(index, 0);
+        elementData[index] = element;
+        size++;
     }
 
     /**
@@ -414,7 +444,13 @@ public class MyArrayList<E> implements List<E> {
      */
     @Override
     public E remove(int index) {
-        return null;
+        if (index > size || index < 0) {
+            throw new IndexOutOfBoundsException();
+        }
+        var e = elementData[index];
+        elementData[index] = null;
+        moveElements(index);
+        return (E) e;
     }
 
     /**
@@ -436,7 +472,7 @@ public class MyArrayList<E> implements List<E> {
      */
     @Override
     public int indexOf(Object o) {
-        return 0;
+        return getElementIndex(o);
     }
 
     /**
@@ -458,7 +494,21 @@ public class MyArrayList<E> implements List<E> {
      */
     @Override
     public int lastIndexOf(Object o) {
-        return 0;
+        if (size == 0)
+            return -1;
+        int index = -1;
+        if (o == null) {
+            for (int i = 0; i < size; i++) {
+                if (elementData[i] == null)
+                    index = i;
+            }
+        } else {
+            for (int i = 0; i < size; i++) {
+                if (elementData[i].equals(o))
+                    index = i;
+            }
+        }
+        return index;
     }
 
     /**
@@ -470,7 +520,7 @@ public class MyArrayList<E> implements List<E> {
      */
     @Override
     public ListIterator<E> listIterator() {
-        return null;
+        return new MyListIterator(0);
     }
 
     /**
@@ -490,7 +540,7 @@ public class MyArrayList<E> implements List<E> {
      */
     @Override
     public ListIterator<E> listIterator(int index) {
-        return null;
+        return new MyListIterator(index);
     }
 
     /**
@@ -517,5 +567,196 @@ public class MyArrayList<E> implements List<E> {
     @Override
     public Spliterator<E> spliterator() {
         return List.super.spliterator();
+    }
+
+    private class MyListIterator implements ListIterator<E> {
+        private int cursor;
+
+        MyListIterator(int index) {
+            cursor = index;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return cursor < size;
+        }
+
+        /**
+         * Returns the next element in the list and advances the cursor position.
+         * This method may be called repeatedly to iterate through the list,
+         * or intermixed with calls to {@link #previous} to go back and forth.
+         * (Note that alternating calls to {@code next} and {@code previous}
+         * will return the same element repeatedly.)
+         *
+         * @return the next element in the list
+         * @throws NoSuchElementException if the iteration has no next element
+         */
+        @Override
+        public E next() {
+            if (hasNext()) {
+                cursor++;
+                return (E) elementData[cursor--];
+            }
+            throw new NoSuchElementException();
+        }
+
+        /**
+         * Returns {@code true} if this list iterator has more elements when
+         * traversing the list in the reverse direction.  (In other words,
+         * returns {@code true} if {@link #previous} would return an element
+         * rather than throwing an exception.)
+         *
+         * @return {@code true} if the list iterator has more elements when
+         * traversing the list in the reverse direction
+         */
+        @Override
+        public boolean hasPrevious() {
+            return cursor >= 0 && hasNext();
+        }
+
+        /**
+         * Returns the previous element in the list and moves the cursor
+         * position backwards.  This method may be called repeatedly to
+         * iterate through the list backwards, or intermixed with calls to
+         * {@link #next} to go back and forth.  (Note that alternating calls
+         * to {@code next} and {@code previous} will return the same
+         * element repeatedly.)
+         *
+         * @return the previous element in the list
+         * @throws NoSuchElementException if the iteration has no previous
+         *                                element
+         */
+        @Override
+        public E previous() {
+            if (cursor == 0)
+                throw new NoSuchElementException();
+            try {
+                return (E) elementData[cursor];
+            } catch (ClassCastException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        /**
+         * Returns the index of the element that would be returned by a
+         * subsequent call to {@link #next}. (Returns list size if the list
+         * iterator is at the end of the list.)
+         *
+         * @return the index of the element that would be returned by a
+         * subsequent call to {@code next}, or list size if the list
+         * iterator is at the end of the list
+         */
+        @Override
+        public int nextIndex() {
+            return cursor++;
+        }
+
+        /**
+         * Returns the index of the element that would be returned by a
+         * subsequent call to {@link #previous}. (Returns -1 if the list
+         * iterator is at the beginning of the list.)
+         *
+         * @return the index of the element that would be returned by a
+         * subsequent call to {@code previous}, or -1 if the list
+         * iterator is at the beginning of the list
+         */
+        @Override
+        public int previousIndex() {
+            return cursor--;
+        }
+
+        /**
+         * Removes from the list the last element that was returned by {@link
+         * #next} or {@link #previous} (optional operation).  This call can
+         * only be made once per call to {@code next} or {@code previous}.
+         * It can be made only if {@link #add} has not been
+         * called after the last call to {@code next} or {@code previous}.
+         *
+         * @throws UnsupportedOperationException if the {@code remove}
+         *                                       operation is not supported by this list iterator
+         * @throws IllegalStateException         if neither {@code next} nor
+         *                                       {@code previous} have been called, or {@code remove} or
+         *                                       {@code add} have been called after the last call to
+         *                                       {@code next} or {@code previous}
+         */
+        @Override
+        public void remove() {
+            try {
+                if (hasNext()) {
+                    elementData[cursor] = null;
+                    moveElements(cursor);
+                }
+            } catch (UnsupportedOperationException | IllegalStateException ex) {
+                ex.printStackTrace();
+            }
+
+        }
+
+        /**
+         * Replaces the last element returned by {@link #next} or
+         * {@link #previous} with the specified element (optional operation).
+         * This call can be made only if neither {@link #remove} nor {@link
+         * #add} have been called after the last call to {@code next} or
+         * {@code previous}.
+         *
+         * @param e the element with which to replace the last element returned by
+         *          {@code next} or {@code previous}
+         * @throws UnsupportedOperationException if the {@code set} operation
+         *                                       is not supported by this list iterator
+         * @throws ClassCastException            if the class of the specified element
+         *                                       prevents it from being added to this list
+         * @throws IllegalArgumentException      if some aspect of the specified
+         *                                       element prevents it from being added to this list
+         * @throws IllegalStateException         if neither {@code next} nor
+         *                                       {@code previous} have been called, or {@code remove} or
+         *                                       {@code add} have been called after the last call to
+         *                                       {@code next} or {@code previous}
+         */
+        @Override
+        public void set(E e) {
+            try {
+                if (hasNext()) {
+                    elementData[cursor] = e;
+                }
+            } catch (IllegalStateException | IllegalArgumentException | ClassCastException |
+                     UnsupportedOperationException ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        /**
+         * Inserts the specified element into the list (optional operation).
+         * The element is inserted immediately before the element that
+         * would be returned by {@link #next}, if any, and after the element
+         * that would be returned by {@link #previous}, if any.  (If the
+         * list contains no elements, the new element becomes the sole element
+         * on the list.)  The new element is inserted before the implicit
+         * cursor: a subsequent call to {@code next} would be unaffected, and a
+         * subsequent call to {@code previous} would return the new element.
+         * (This call increases by one the value that would be returned by a
+         * call to {@code nextIndex} or {@code previousIndex}.)
+         *
+         * @param e the element to insert
+         * @throws UnsupportedOperationException if the {@code add} method is
+         *                                       not supported by this list iterator
+         * @throws ClassCastException            if the class of the specified element
+         *                                       prevents it from being added to this list
+         * @throws IllegalArgumentException      if some aspect of this element
+         *                                       prevents it from being added to this list
+         */
+        @Override
+        public void add(E e) {
+            try {
+                if (size == elementData.length) {
+                    resize();
+                }
+                elementData[size] = e;
+                size++;
+            } catch (IllegalArgumentException | ClassCastException |
+                     UnsupportedOperationException ex) {
+                ex.printStackTrace();
+            }
+        }
     }
 }
