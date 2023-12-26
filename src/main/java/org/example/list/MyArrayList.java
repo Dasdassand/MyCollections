@@ -17,9 +17,9 @@ public class MyArrayList<E> implements List<E> {
         elementData = new Object[size];
     }
 
-    public MyArrayList(Object[] objects, int size) {
+    public MyArrayList(E[] objects) {
         elementData = objects;
-        this.size = size;
+        this.size = objects.length;
     }
 
     /**
@@ -551,14 +551,14 @@ public class MyArrayList<E> implements List<E> {
     @Override
     public List<E> subList(int fromIndex, int toIndex) {
         if (fromIndex > size || fromIndex < 0 || toIndex > size || toIndex < 0 || fromIndex > toIndex) {
-            return null;
+           throw new IndexOutOfBoundsException();
         }
         int size = toIndex - fromIndex + 1;
         Object[] objects = new Object[size];
         for (int i = fromIndex; i < toIndex; i++) {
             objects[i] = get(i);
         }
-        return new MyArrayList<E>(objects, size);
+        return new MyArrayList<>((E[])objects);
     }
 
     /**
