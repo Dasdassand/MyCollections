@@ -1,12 +1,21 @@
 package entity;
 
 import java.util.Objects;
+import java.util.Random;
 
 public class TestEntity {
     private final int age;
     private final Sex sex;
-   public enum Sex{
-        M,F
+    private static final Random random = new Random();
+
+    public enum Sex {
+        M, F;
+
+        public static Sex randomSex() {
+            Sex[] directions = values();
+            return directions[random.nextInt(directions.length)];
+        }
+
     }
 
     public TestEntity(int age, Sex sex) {
@@ -32,5 +41,12 @@ public class TestEntity {
     @Override
     public int hashCode() {
         return Objects.hash(age, sex);
+    }
+
+    public static TestEntity build() {
+        return new TestEntity(
+                random.nextInt(99),
+                Sex.randomSex()
+        );
     }
 }

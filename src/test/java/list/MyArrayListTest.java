@@ -12,19 +12,16 @@ import java.util.NoSuchElementException;
 import static org.junit.Assert.*;
 
 public class MyArrayListTest {
-    private MyArrayList<TestEntity> testList;
+    private final MyArrayList<TestEntity> testList = new MyArrayList<>(5);
 
     @Before
     public void setUp() {
-        System.out.println(
-                "Method starting"
-        );
-        testList = new MyArrayList<>();
-        testList.add(new TestEntity(18, TestEntity.Sex.F));
-        testList.add(new TestEntity(27, TestEntity.Sex.M));
-        testList.add(new TestEntity(34, TestEntity.Sex.F));
-        testList.add(new TestEntity(89, TestEntity.Sex.M));
-        testList.add(new TestEntity(34, TestEntity.Sex.F));
+        testList.clear();
+        for (int i = 0; i < 5; i++) {
+            testList.add(
+                    TestEntity.build()
+            );
+        }
     }
 
     /**
@@ -35,42 +32,33 @@ public class MyArrayListTest {
         MyArrayList<TestEntity> one = new MyArrayList<>();
         MyArrayList<TestEntity> two = new MyArrayList<>(5);
         MyArrayList<TestEntity> three = new MyArrayList<>(
-                new TestEntity[]
-                        {new TestEntity(18, TestEntity.Sex.F),
-                                new TestEntity(27, TestEntity.Sex.M),
-                                new TestEntity(34, TestEntity.Sex.F)});
-        var actual = new TestEntity[]
-                {new TestEntity(18, TestEntity.Sex.F),
-                        new TestEntity(27, TestEntity.Sex.M),
-                        new TestEntity(34, TestEntity.Sex.F)};
+                testList.subList(0, 3).toArray(new TestEntity[4])
+        );
 
-        assertEquals(one.size(), 0);
+        assertEquals(0, one.size());
 
 
         try {
             Field field = two.getClass().getDeclaredField("elementData");
             field.setAccessible(true);
             var data = (Object[]) field.get(two);
-            Assert.assertEquals(data.length, 5);
+            Assert.assertEquals(5, data.length);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }
 
 
-        assertEquals(three.size(), 3);
-        assertArrayEquals(three.toArray(), actual);
+        assertEquals(4, three.size());
+        assertEquals(three, testList.subList(0, 3));
     }
 
     @Test
     public void testGetMethods() {
-        TestEntity[] arrTest = testList.toArray(new TestEntity[5]);
-        TestEntity[] actual = {
-                new TestEntity(18, TestEntity.Sex.F),
-                new TestEntity(27, TestEntity.Sex.M),
-                new TestEntity(34, TestEntity.Sex.F),
-                new TestEntity(89, TestEntity.Sex.M),
-                new TestEntity(34, TestEntity.Sex.F)
-        };
+        TestEntity[] actual = testList.toArray(new TestEntity[5]);
+        TestEntity[] arrTest = new TestEntity[5];
+        for (int i = 0; i < actual.length; i++) {
+            arrTest[i] = testList.get(i);
+        }
         assertArrayEquals(arrTest, actual);
 
         var arrayObj = testList.toArray();
@@ -85,31 +73,32 @@ public class MyArrayListTest {
         assertEquals(testList.size(), 5);
         assertFalse(testList.isEmpty());
 
-        assertEquals(testList.get(3), new TestEntity(89, TestEntity.Sex.M));
+        assertEquals(arrTest[3], testList.get(3));
 
-        assertEquals(testList.indexOf(new TestEntity(34, TestEntity.Sex.F)), 2);
-        assertEquals(testList.lastIndexOf(new TestEntity(34, TestEntity.Sex.F)), 4);
+        assertEquals(testList.indexOf(testList.get(4)), 4);
+        testList.set(2, testList.get(4));
+        assertEquals(testList.lastIndexOf(testList.get(4)), 4);
 
         assertEquals(testList.subList(0, 2), new MyArrayList<>(new TestEntity[]{
-                new TestEntity(18, TestEntity.Sex.F),
-                new TestEntity(27, TestEntity.Sex.M),
-                new TestEntity(34, TestEntity.Sex.F)
+                testList.get(0),
+                testList.get(1),
+                testList.get(2)
         }));
     }
 
     @Test
     public void testContainsMethods() {
-        assertTrue(testList.contains(new TestEntity(34, TestEntity.Sex.F)));
-        assertFalse(testList.contains(new TestEntity(37, TestEntity.Sex.F)));
+        assertTrue(testList.contains(testList.get(1)));
+        assertFalse(testList.contains(new TestEntity(100, TestEntity.Sex.F)));
 
-        var exList = new MyArrayList<TestEntity>(new TestEntity[]{
-                new TestEntity(18, TestEntity.Sex.F),
-                new TestEntity(27, TestEntity.Sex.M),
-                new TestEntity(34, TestEntity.Sex.F)
+        var exList = new MyArrayList<>(new TestEntity[]{
+                testList.get(1),
+                testList.get(3),
+                testList.get(0)
         });
         assertTrue(testList.containsAll(exList));
 
-        exList.set(2, new TestEntity(90, TestEntity.Sex.M));
+        exList.set(2, new TestEntity(101, TestEntity.Sex.M));
         assertFalse(testList.containsAll(exList));
     }
 
@@ -120,43 +109,53 @@ public class MyArrayListTest {
      */
     @Test
     public void testCUDMethods() {
-        /**
-         testList.add(new TestEntity(29, TestEntity.Sex.F));
-         assertEquals(testList.get(5),new TestEntity(29, TestEntity.Sex.F));
-         assertEquals(testList.size(),6);
+        var newEntity = TestEntity.build();
+        testList.add(newEntity);
+        assertEquals(testList.get(5), newEntity);
+        assertEquals(testList.size(), 6);
+        assertFalse(testList.remove(new TestEntity(100, TestEntity.Sex.M)));
+        assertTrue(testList.remove(testList.get(0)));
+        assertTrue(testList.remove(testList.get(4)));
+        assertTrue(testList.remove(testList.get(3)));
 
-         assertFalse(testList.remove(new TestEntity(99, TestEntity.Sex.M)));
-         assertTrue(testList.remove(new TestEntity(18, TestEntity.Sex.F)));
-         assertTrue(testList.remove(new TestEntity(34, TestEntity.Sex.F)));
-         assertTrue(testList.remove(new TestEntity(29, TestEntity.Sex.F)));
-         */
-
-//        setUp();
         var tmp = new MyArrayList<>(new TestEntity[]{
-                new TestEntity(77, TestEntity.Sex.M),
-                new TestEntity(67, TestEntity.Sex.F),
-                new TestEntity(57, TestEntity.Sex.M)
+                TestEntity.build(),
+                TestEntity.build(),
+                TestEntity.build()
         });
-//        testList.addAll(tmp);
-//        assertTrue(testList.containsAll(tmp));
-//        assertEquals(testList.size(),8);
-
-        setUp();
-        testList.addAll(2, tmp);
+        testList.addAll(tmp);
         assertTrue(testList.containsAll(tmp));
-        assertEquals(testList.size(), 8);
+        assertEquals(testList.size(), 6);
+
+        testList.addAll(2, tmp);
+        var oldEntity = testList.get(8);
+        assertTrue(testList.containsAll(tmp));
+        assertEquals(testList.size(), 9);
         var subList = testList.subList(2, 4);
         assertEquals(subList, tmp);
-        assertEquals(new TestEntity(34, TestEntity.Sex.F), testList.get(7));
+        assertEquals(oldEntity, testList.get(8));
 
+        assertTrue(testList.removeAll(tmp));
+        assertTrue(testList.removeAll(tmp));
+        assertFalse(testList.containsAll(tmp));
 
-        /**
-         removeAll(Collection < ? > c)
-         removeAll(Collection < ? > c)
-         retainAll(Collection < ? > c)
-         add( int index, E element)
-         set( int index, E element)
-         */
+        testList.addAll(tmp);
+        tmp.remove(1);
+        tmp.add(testList.get(1));
+        newEntity = TestEntity.build();
+        tmp.add(newEntity);
+        assertTrue(testList.retainAll(tmp));
+
+        tmp.remove(newEntity);
+        assertEquals(tmp, testList);
+
+        newEntity = TestEntity.build();
+        testList.add(0, newEntity);
+        assertEquals(newEntity, testList.get(0));
+
+        newEntity = TestEntity.build();
+        testList.set(2, newEntity);
+        assertEquals(newEntity, testList.get(2));
     }
 
     /**
@@ -166,6 +165,7 @@ public class MyArrayListTest {
     public void testListIterator() {
         var listIteratorSI0 = testList.listIterator();
         var listIteratorSI4 = testList.listIterator(4);
+        TestEntity e0 = testList.get(0);
 
         assertTrue(listIteratorSI0.hasNext());
         assertTrue(listIteratorSI4.hasNext());
@@ -180,11 +180,10 @@ public class MyArrayListTest {
         assertEquals(listIteratorSI4.previous(), testList.get(1));
 
         listIteratorSI0.remove();
-        assertFalse(testList.contains(new TestEntity(18, TestEntity.Sex.F)));
+        assertFalse(testList.contains(e0));
         assertEquals(testList.size(), 4);
 
         listIteratorSI4.set(new TestEntity(67, TestEntity.Sex.M));
-        assertFalse(testList.contains(new TestEntity(34, TestEntity.Sex.M)));
         assertTrue(testList.contains(new TestEntity(67, TestEntity.Sex.M)));
 
         listIteratorSI0.add(new TestEntity(23, TestEntity.Sex.F));

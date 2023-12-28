@@ -100,16 +100,13 @@ public class MyArrayList<E> implements List<E> {
                 return false;
             }
             case 0 -> {
-                elementData[0] = null;
+                moveElements(0);
                 size--;
-                if (size > 0)
-                    moveElements(0);
                 return true;
             }
             default -> {
-                elementData[index] = null;
-                size--;
                 moveElements(index);
+                size--;
                 return true;
             }
         }
@@ -133,9 +130,10 @@ public class MyArrayList<E> implements List<E> {
     }
 
     private void moveElements(int start) {
-        for (int i = start; i < size; i++) {
+        for (int i = start; i < size - 1; i++) {
             elementData[i] = elementData[i + 1];
         }
+        elementData[size - 1] = null;
     }
 
 
@@ -180,9 +178,9 @@ public class MyArrayList<E> implements List<E> {
 
     private void moveElementsAdd(int index, int size) {
         int n = 0;
-        for (int i = index; i < size; i++) {
-            elementData[this.size + n] = elementData[index];
-            elementData[index] = null;
+        for (int i = index; i < size + index; i++) {
+            elementData[this.size + n] = elementData[i];
+            elementData[i] = null;
             n++;
         }
     }
@@ -195,7 +193,7 @@ public class MyArrayList<E> implements List<E> {
         int count = 0;
         for (Object o :
                 c) {
-            if (remove(c))
+            if (remove(o))
                 count++;
         }
         return count > 0;
@@ -287,8 +285,8 @@ public class MyArrayList<E> implements List<E> {
             throw new IndexOutOfBoundsException();
         }
         var e = elementData[index];
-        elementData[index] = null;
         moveElements(index);
+        size--;
         return (E) e;
     }
 
