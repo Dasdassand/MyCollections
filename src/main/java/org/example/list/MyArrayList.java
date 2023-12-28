@@ -22,6 +22,10 @@ public class MyArrayList<E> implements List<E> {
         this.size = objects.length;
     }
 
+    public MyArrayList(Collection<E> collection) {
+        size = collection.size();
+        elementData = collection.toArray();
+    }
 
     @Override
     public int size() {
