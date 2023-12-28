@@ -26,11 +26,11 @@ public class TestEntity {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof TestEntity that)) return false;
-        return getAge() == that.getAge() && getSex() == that.getSex();
+        return age == that.age && sex == that.sex;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getAge(), getSex());
+        return Objects.hash(age, sex);
     }
 }
