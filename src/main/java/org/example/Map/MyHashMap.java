@@ -86,7 +86,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         }
     }
 
-    private Node<K, V>[] table;
+    private Map.Entry<K, V>[] table;
 
     private static final int DEFAULT_INITIAL_CAPACITY = 16;
     private float loadFactor = 0.75f;
@@ -126,52 +126,59 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
     }
 
     private boolean containsKeyList(Object key) {
-        for (Node<K, V> kvNode : table) {
-            if (kvNode == null)
-                continue;
-            var node = kvNode;
-            do {
-                if (node.key == key)
-                    return true;
-                if (node.next != null) {
+        try {
+            var hash = Objects.hashCode(key);
+            var node = (Node<K, V>) table[getIndex((K) key)];
+            while (true) {
+                if (node.hash == hash) {
+                    if (node.key.equals(key))
+                        return true;
+                } else if (!(node.next == null)) {
                     node = (Node<K, V>) node.next;
-                } else
-                    break;
-            } while (true);
+                }
+            }
+        } catch (ClassCastException exception) {
+            exception.printStackTrace();
         }
         return false;
+
     }
 
+
     private boolean containsKeyTree(Object key) {
+        try {
+            var hash = Objects.hashCode(key);
+            var node = (BinaryTreeNode<K, V>) table[getIndex((K) key)];
+            while (true) {
+                if (node.hash == hash) {
+                    if (node.key.equals(key))
+                        return true;
+                } else if (!(node.left == null) && (node.right == null || node.right.hash > hash)) {
+                    node = node.left;
+                } else node = node.right;
+            }
+        } catch (ClassCastException exception) {
+            exception.printStackTrace();
+        }
+        return false;
     }
 
     @Override
     public boolean containsValue(Object value) {
-        for (Node<K, V> kvNode : table) {
-            if (kvNode == null)
-                continue;
-            var node = kvNode;
-            do {
-                if (node.value == value)
-                    return true;
-                if (node.next != null) {
-                    node = (Node<K, V>) node.next;
-                } else
-                    break;
-            } while (true);
-        }
-        return false;
+        if (table.getClass().equals(Node[].class))
+            return containsValueList(value);
+        else
+            return containsValueTree(value);
     }
 
-    @Override
-    public V get(Object key) {
-        for (Node<K, V> kvNode : table) {
+    private boolean containsValueList(Object value) {
+        for (Node<K, V> kvNode : (Node<K, V>[]) table) {
             if (kvNode == null)
                 continue;
             var node = kvNode;
             do {
-                if (node.key == key) {
-                    return node.value;
+                if (node.value == value) {
+                    return true;
                 }
                 if (node.next != null) {
                     node = (Node<K, V>) node.next;
@@ -182,138 +189,175 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         throw new NoSuchElementException();
     }
 
-    @Override
-    public V put(K key, V value) {
-        int index = getIndex(key);
-        if (table[index] == null) {
-            table[index] = new Node<>(Objects.hashCode(key), key, value, null);
-            size++;
-            checkSizeArray();
-            return null;
-        } else {
-            boolean flag = true;
-            var node = table[index];
-            do {
-                if (Objects.hashCode(key) == node.hash && node.key.equals(key)) {
-                    node.value = value;
-                    flag = false;
-                }
-                if (node.next != null) {
-                    node = (Node<K, V>) node.next;
-                } else
-                    break;
-            } while (true);
+    private boolean dfs(BinaryTreeNode<K, V> node, V value) {
+        if (node == null) return false;
+        if (node.value == value) return true;
+        dfs(node.getLeft(), value);
+        dfs(node.getRight(), value);
+    }
 
-            if (flag) {
-                node.setNext(new Node<>(Objects.hashCode(key), key, value, null));
-                size++;
+    private boolean containsValueTree(Object value) {
+        for (BinaryTreeNode<K, V> kvNode : (BinaryTreeNode<K, V>[]) table) {
+            try {
+                if (dfs(kvNode, (V) value))
+                    return true;
+            } catch (ClassCastException exception) {
+                exception.printStackTrace();
             }
-            checkSizeBucket(index);
-            checkSizeArray();
-            return value;
+            return false;
         }
-    }
 
-    private void checkSizeBucket(int index) {
-        if (index == 1) {
-            System.out.println();
+        @Override
+        public V get(Object key){
+            for (Node<K, V> kvNode : table) {
+                if (kvNode == null)
+                    continue;
+                var node = kvNode;
+                do {
+                    if (node.key == key) {
+                        return node.value;
+                    }
+                    if (node.next != null) {
+                        node = (Node<K, V>) node.next;
+                    } else
+                        break;
+                } while (true);
+            }
+            throw new NoSuchElementException();
         }
-    }
 
-    private void checkSizeArray() {
-        if (size >= table.length * loadFactor)
-            resize();
-    }
+        @Override
+        public V put (K key, V value){
+            int index = getIndex(key);
+            if (table[index] == null) {
+                table[index] = new Node<>(Objects.hashCode(key), key, value, null);
+                size++;
+                checkSizeArray();
+                return null;
+            } else {
+                boolean flag = true;
+                var node = table[index];
+                do {
+                    if (Objects.hashCode(key) == node.hash && node.key.equals(key)) {
+                        node.value = value;
+                        flag = false;
+                    }
+                    if (node.next != null) {
+                        node = (Node<K, V>) node.next;
+                    } else
+                        break;
+                } while (true);
 
-    private void resize() {
-        var tmp = table;
-        table = new Node[tmp.length * 2];
-        for (Node n : tmp) {
-            put((K) n.key, (V) n.value);
+                if (flag) {
+                    node.setNext(new Node<>(Objects.hashCode(key), key, value, null));
+                    size++;
+                }
+                checkSizeBucket(index);
+                checkSizeArray();
+                return value;
+            }
         }
-    }
 
-    private int getIndex(K key) {
-        return key == null
-                ? 0
-                : Objects.hashCode(key) & (table.length - 1);
-    }
-
-    @Override
-    public V remove(Object key) {
-        return null;
-    }
-
-    @Override
-    public void putAll(Map<? extends K, ? extends V> m) {
-
-    }
-
-    @Override
-    public void clear() {
-        table = new Node[DEFAULT_INITIAL_CAPACITY];
-        size = 0;
-    }
-
-    @Override
-    public Set<K> keySet() {
-        Set<K> set = new HashSet<>();
-        for (Node<K, V> kvNode : table) {
-            if (kvNode == null)
-                continue;
-            var node = kvNode;
-            do {
-                set.add(node.key);
-                if (node.next != null) {
-                    node = (Node<K, V>) node.next;
-                } else
-                    break;
-            } while (true);
+        private void checkSizeBucket ( int index){
+            if (index == 1) {
+                System.out.println();
+            }
         }
-        return set;
-    }
 
-    @Override
-    public Collection<V> values() {
-        Collection<V> collection = new ArrayList<>();
-        for (Node<K, V> kvNode : table) {
-            if (kvNode == null)
-                continue;
-            var node = kvNode;
-            do {
-                collection.add(node.value);
-                if (node.next != null) {
-                    node = (Node<K, V>) node.next;
-                } else
-                    break;
-            } while (true);
+        private void checkSizeArray () {
+            if (size >= table.length * loadFactor)
+                resize();
         }
-        return collection;
-    }
 
-    @Override
-    public Set<Entry<K, V>> entrySet() {
-        Set<Entry<K, V>> set = new HashSet<>();
-        for (Node<K, V> kvNode : table) {
-            if (kvNode == null)
-                continue;
-            var node = kvNode;
-            do {
-                set.add(node);
-                if (node.next != null) {
-                    node = (Node<K, V>) node.next;
-                } else
-                    break;
-            } while (true);
+        private void resize () {
+            var tmp = table;
+            table = new Node[tmp.length * 2];
+            for (Node n : tmp) {
+                put((K) n.key, (V) n.value);
+            }
         }
-        return set;
+
+        private int getIndex (K key){
+            return key == null
+                    ? 0
+                    : Objects.hashCode(key) & (table.length - 1);
+        }
+
+        @Override
+        public V remove (Object key){
+            return null;
+        }
+
+        @Override
+        public void putAll (Map < ? extends K, ? extends V > m){
+
+        }
+
+        @Override
+        public void clear () {
+            table = new Node[DEFAULT_INITIAL_CAPACITY];
+            size = 0;
+        }
+
+        @Override
+        public Set<K> keySet () {
+            Set<K> set = new HashSet<>();
+            for (Node<K, V> kvNode : table) {
+                if (kvNode == null)
+                    continue;
+                var node = kvNode;
+                do {
+                    set.add(node.key);
+                    if (node.next != null) {
+                        node = (Node<K, V>) node.next;
+                    } else
+                        break;
+                } while (true);
+            }
+            return set;
+        }
+
+        @Override
+        public Collection<V> values () {
+            Collection<V> collection = new ArrayList<>();
+            for (Node<K, V> kvNode : table) {
+                if (kvNode == null)
+                    continue;
+                var node = kvNode;
+                do {
+                    collection.add(node.value);
+                    if (node.next != null) {
+                        node = (Node<K, V>) node.next;
+                    } else
+                        break;
+                } while (true);
+            }
+            return collection;
+        }
+
+        @Override
+        public Set<Entry<K, V>> entrySet () {
+            Set<Entry<K, V>> set = new HashSet<>();
+            for (Node<K, V> kvNode : table) {
+                if (kvNode == null)
+                    continue;
+                var node = kvNode;
+                do {
+                    set.add(node);
+                    if (node.next != null) {
+                        node = (Node<K, V>) node.next;
+                    } else
+                        break;
+                } while (true);
+            }
+            return set;
+        }
+
+        @Override
+        public MyHashMap<K, V> clone () {
+            MyHashMap<K, V> clone = new MyHashMap<>(this.loadFactor, this.size, this.table);
+            return clone;
+        }
+
+
     }
-
-    @Override
-    public MyHashMap<K, V> clone() {
-        MyHashMap<K, V> clone = new MyHashMap<>(this.loadFactor, this.size, this.table);
-        return clone;
-    }
-
-
-}
