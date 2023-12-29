@@ -10,7 +10,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         private int hash;
         private K key;
         private V value;
-        private Node<K, V> next;
+        private Map.Entry<K, V> next;
 
         public Node(int hash, K key, V value, Node<K, V> next) {
             this.hash = hash;
@@ -38,6 +38,51 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
 
         public void setNext(Node<K, V> next) {
             this.next = next;
+        }
+    }
+
+    static class BinaryTreeNode<K, V> implements Map.Entry<K, V> {
+        private int hash;
+        private K key;
+        private V value;
+        private BinaryTreeNode<K, V> left;
+        private BinaryTreeNode<K, V> right;
+
+        public void setLeft(BinaryTreeNode<K, V> left) {
+            this.left = left;
+        }
+
+        public void setRight(BinaryTreeNode<K, V> right) {
+            this.right = right;
+        }
+
+        public int getHash() {
+            return hash;
+        }
+
+        public BinaryTreeNode<K, V> getLeft() {
+            return left;
+        }
+
+        public BinaryTreeNode<K, V> getRight() {
+            return right;
+        }
+
+        @Override
+        public K getKey() {
+            return key;
+        }
+
+        @Override
+        public V getValue() {
+            return value;
+        }
+
+        @Override
+        public V setValue(V value) {
+            var oldValue = this.value;
+            this.value = value;
+            return oldValue;
         }
     }
 
@@ -74,6 +119,13 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
 
     @Override
     public boolean containsKey(Object key) {
+        if (table.getClass().equals(Node[].class))
+            return containsKeyList(key);
+        else
+            return containsKeyTree(key);
+    }
+
+    private boolean containsKeyList(Object key) {
         for (Node<K, V> kvNode : table) {
             if (kvNode == null)
                 continue;
@@ -82,12 +134,15 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
                 if (node.key == key)
                     return true;
                 if (node.next != null) {
-                    node = node.next;
+                    node = (Node<K, V>) node.next;
                 } else
                     break;
             } while (true);
         }
         return false;
+    }
+
+    private boolean containsKeyTree(Object key) {
     }
 
     @Override
@@ -100,7 +155,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
                 if (node.value == value)
                     return true;
                 if (node.next != null) {
-                    node = node.next;
+                    node = (Node<K, V>) node.next;
                 } else
                     break;
             } while (true);
@@ -119,7 +174,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
                     return node.value;
                 }
                 if (node.next != null) {
-                    node = node.next;
+                    node = (Node<K, V>) node.next;
                 } else
                     break;
             } while (true);
@@ -133,6 +188,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         if (table[index] == null) {
             table[index] = new Node<>(Objects.hashCode(key), key, value, null);
             size++;
+            checkSizeArray();
             return null;
         } else {
             boolean flag = true;
@@ -143,7 +199,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
                     flag = false;
                 }
                 if (node.next != null) {
-                    node = node.next;
+                    node = (Node<K, V>) node.next;
                 } else
                     break;
             } while (true);
@@ -152,10 +208,16 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
                 node.setNext(new Node<>(Objects.hashCode(key), key, value, null));
                 size++;
             }
+            checkSizeBucket(index);
+            checkSizeArray();
             return value;
         }
-        checkSizeBucket(index);
-        checkSizeArray();
+    }
+
+    private void checkSizeBucket(int index) {
+        if (index == 1) {
+            System.out.println();
+        }
     }
 
     private void checkSizeArray() {
@@ -189,8 +251,8 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
 
     @Override
     public void clear() {
-    table = new Node[DEFAULT_INITIAL_CAPACITY];
-    size = 0;
+        table = new Node[DEFAULT_INITIAL_CAPACITY];
+        size = 0;
     }
 
     @Override
@@ -203,7 +265,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
             do {
                 set.add(node.key);
                 if (node.next != null) {
-                    node = node.next;
+                    node = (Node<K, V>) node.next;
                 } else
                     break;
             } while (true);
@@ -221,7 +283,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
             do {
                 collection.add(node.value);
                 if (node.next != null) {
-                    node = node.next;
+                    node = (Node<K, V>) node.next;
                 } else
                     break;
             } while (true);
@@ -239,7 +301,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
             do {
                 set.add(node);
                 if (node.next != null) {
-                    node = node.next;
+                    node = (Node<K, V>) node.next;
                 } else
                     break;
             } while (true);
