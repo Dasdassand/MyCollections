@@ -291,15 +291,6 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         }
     }
 
-    /**
-     * Все значения в узлах левого дочернего поддерева меньше значения родительского узла
-     * Все значения в узлах правого дочернего поддерева больше значения родительского узла
-     * Каждый дочерний узел тоже является бинарным деревом поиска
-     *
-     * @param key
-     * @param value
-     * @return
-     */
     private V putTree(K key, V value) {
         int index = getIndex(key);
         if (table[index] == null) {
