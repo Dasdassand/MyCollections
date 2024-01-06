@@ -123,11 +123,12 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
     public MyHashMap(float loadFactor, int size, MyEntry<K, V>[] table) {
         this.loadFactor = loadFactor;
         this.size = size;
-        this.table = table;
+        this.table = new MyEntry[table.length];
         if (!checkConstructorArgumentTable(table, size))
             throw new IllegalArgumentException();
         for (MyEntry e : table) {
             if (e != null) {
+                put((K) e.getKey(), (V) e.getValue());
                 keys.add((K) e.getKey());
                 values.add((V) e.getValue());
             }
@@ -236,6 +237,9 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         try {
             var hash = Objects.hashCode(key);
             var node = (BinaryTreeNode<K, V>) table[getIndex((K) key)];
+            if (node == null){
+                return false;
+            }
             while (true) {
                 if (node.hash == hash) {
                     if (node.key.equals(key))
@@ -498,11 +502,13 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
     }
 
     private void putAllUseDFS(BinaryTreeNode<K, V> node) {
-        put(node.key, node.value);
-        if (node.left != null)
-            putAllUseDFS(node.left);
-        if (node.right != null)
-            putAllUseDFS(node.right);
+        if (node != null) {
+            put(node.key, node.value);
+            if (node.left != null)
+                putAllUseDFS(node.left);
+            if (node.right != null)
+                putAllUseDFS(node.right);
+        }
     }
 
     private int getIndex(K key) {
@@ -638,13 +644,23 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
 
     @Override
     public Collection<V> values() {
-        return values();
+        return values;
     }
 
     @Override
     public Set<Map.Entry<K, V>> entrySet() {
         Set<Map.Entry<K, V>> set = new HashSet<>();
-        Collections.addAll(set, table);
+        if (isListTable()) {
+            for (K key :
+                    keys) {
+                set.add(getListNode(key));
+            }
+        } else {
+            for (K key :
+                    keys) {
+                set.add(getTreeNode(key));
+            }
+        }
         return set;
     }
 

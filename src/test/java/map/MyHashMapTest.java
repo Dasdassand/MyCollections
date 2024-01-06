@@ -6,9 +6,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MyHashMapTest {
     MyHashMap<Integer, TestEntity> map = new MyHashMap<>();
@@ -38,5 +41,38 @@ public class MyHashMapTest {
         } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }
+    }
+
+    @Test
+    public void testCRUDMethods() {
+        var keys = map.keySet();
+        var values = map.values();
+        var entrySet = map.entrySet();
+        assertEquals(entrySet.size(), keys.size());
+        for (Integer key :
+                keys) {
+            assertTrue(values.contains(map.get(key)));
+        }
+        var testEntity = new TestEntity(18, TestEntity.Sex.M);
+        map.put(123, testEntity);
+        assertEquals(testEntity, map.get(123));
+        map.remove(123);
+        assertFalse(map.containsKey(123));
+        Map<Integer, TestEntity> map1 = new HashMap<>();
+        for (int i = 0; i < 10; i++) {
+            map.put(random.nextInt(100), TestEntity.build());
+        }
+        map.putAll(map1);
+        keys = map1.keySet();
+        for (Integer key :
+                keys) {
+            assertEquals(map.get(key), map1.get(key));
+        }
+
+        map.clear();
+        assertTrue(map.isEmpty());
+        assertTrue(map.keySet().isEmpty());
+        assertTrue(map.values().isEmpty());
+        assertTrue(map.entrySet().isEmpty());
     }
 }
