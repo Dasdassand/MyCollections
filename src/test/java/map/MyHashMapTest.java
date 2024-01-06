@@ -54,12 +54,12 @@ public class MyHashMapTest {
             assertTrue(values.contains(map.get(key)));
         }
         var testEntity = new TestEntity(18, TestEntity.Sex.M);
-        map.put(123, testEntity);
-        assertEquals(testEntity, map.get(123));
-        map.remove(123);
-        assertFalse(map.containsKey(123));
+        map.put(100000, testEntity);
+        assertEquals(testEntity, map.get(100000));
+        map.remove(100000);
+        assertFalse(map.containsKey(100000));
         Map<Integer, TestEntity> map1 = new HashMap<>();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < random.nextInt(100); i++) {
             map.put(random.nextInt(100), TestEntity.build());
         }
         map.putAll(map1);
@@ -74,5 +74,16 @@ public class MyHashMapTest {
         assertTrue(map.keySet().isEmpty());
         assertTrue(map.values().isEmpty());
         assertTrue(map.entrySet().isEmpty());
+    }
+
+    @Test
+    public void testContainsMethods() {
+        var testEntity = new TestEntity(18, TestEntity.Sex.M);
+        map.put(100000, testEntity);
+        assertTrue(map.containsKey(100000));
+        assertTrue(map.containsValue(testEntity));
+        map.remove(100000);
+        assertFalse(map.containsKey(100000));
+        assertFalse(map.containsValue(testEntity));
     }
 }

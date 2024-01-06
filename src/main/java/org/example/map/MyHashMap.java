@@ -163,23 +163,23 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
     }
 
     private int getCountElementFromTreeTable(MyEntry<K, V>[] table) {
-        Integer count = 0;
+        int count = 0;
         for (MyEntry<K, V> kvMyEntry : table) {
             if (kvMyEntry != null) {
                 var node = (BinaryTreeNode<K, V>) kvMyEntry;
-                getCountElement(node, count);
+                count = getCountElement(node);
             }
         }
         return count;
     }
 
-    private void getCountElement(BinaryTreeNode<K, V> node, Integer count) {
-        count++;
-        if (node.left != null) {
-            getCountElement(node.left, count);
-        }
-        if (node.right != null) {
-            getCountElement(node.right, count);
+    private int getCountElement(BinaryTreeNode<K, V> node) {
+        if (node == null) {
+            return 0;
+        } else {
+            int leftCount = getCountElement(node.left);
+            int rightCount = getCountElement(node.right);
+            return leftCount + rightCount + 1;
         }
     }
 
@@ -217,6 +217,8 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         try {
             var hash = Objects.hashCode(key);
             var node = (Node<K, V>) table[getIndex((K) key)];
+            if (node == null)
+                return false;
             while (true) {
                 if (node.hash == hash) {
                     if (node.key.equals(key))
@@ -237,7 +239,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         try {
             var hash = Objects.hashCode(key);
             var node = (BinaryTreeNode<K, V>) table[getIndex((K) key)];
-            if (node == null){
+            if (node == null) {
                 return false;
             }
             while (true) {
@@ -280,7 +282,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
                     break;
             } while (true);
         }
-        throw new NoSuchElementException();
+       return false;
     }
 
     private boolean dfsValue(BinaryTreeNode<K, V> node, V value) {
@@ -335,35 +337,41 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
     }
 
     private V putNode(K key, V value) {
-        int index = getIndex(key);
+        int index = getIndex(key), count = 0;
         if (table[index] == null) {
             table[index] = new Node<>(Objects.hashCode(key), key, value, null);
             size++;
             checkSizeArray();
             return null;
         } else {
-            boolean flag = true;
             var node = (Node<K, V>) table[index];
-            do {
-                if (Objects.hashCode(key) == node.hash && node.key.equals(key)) {
-                    node.setValue(value);
-                    flag = false;
+            boolean flagPut = true;
+            var hash = Objects.hashCode(key);
+            while (true) {
+                count++;
+                if (node.hash == hash) {
+                    if (node.key.equals(key)) {
+                        flagPut = false;
+                        node.value = value;
+                    }
                 }
                 if (node.next != null) {
-                    node = (Node<K, V>) node.next;
-                } else
+                    node = node.next;
+                } else {
                     break;
-            } while (true);
-
-            if (flag) {
-                node.next = (new Node<>(Objects.hashCode(key), key, value, null));
-                size++;
+                }
             }
-            checkSizeBucket(index);
+            if (flagPut) {
+                node.next = new Node<>(hash, key, value, null);
+                size++;
+                count++;
+            }
+            checkSizeBucket(count);
             checkSizeArray();
             return value;
         }
     }
+
 
     private V putTree(K key, V value) {
         int index = getIndex(key);
@@ -406,11 +414,11 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         }
     }
 
-    private void checkSizeBucket(int index) {
-        if (index == 8 && !flagCast) {
+    private void checkSizeBucket(int maxCount) {
+        if (maxCount >= 8 && !flagCast) {
             castListTableToTreeTable();
             flagCast = true;
-        } else if (index == 6 && flagCast) {
+        } else if (maxCount <= 6 && flagCast) {
             castTreeTableToListTable();
             flagCast = false;
         }
@@ -473,6 +481,40 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         } else {
             resizeTreeTable((BinaryTreeNode<K, V>[]) oldTable);
         }
+        checkSizeBucket(getMaxElementFromBuckets());
+    }
+
+    private int getMaxElementFromBuckets() {
+        int maxCount = 0, count = 0;
+        if (isListTable()) {
+            for (int i = 0; i < table.length; i++) {
+                if (count > maxCount) {
+                    maxCount = count;
+                    count = 0;
+                }
+                if (table[i] != null) {
+                    var node = (Node<K, V>) table[i];
+                    while (true) {
+                        count++;
+                        if (node.next != null) {
+                            node = node.next;
+                        } else
+                            break;
+                    }
+                }
+            }
+        } else {
+            for (int i = 0; i < table.length; i++) {
+                if (table[i] != null) {
+                    count = getCountElement((BinaryTreeNode<K, V>) table[i]);
+                }
+                if (count > maxCount) {
+                    maxCount = count;
+                    count = 0;
+                }
+            }
+        }
+        return maxCount;
     }
 
     private void resizeListTable(Node<K, V>[] oldTable) {
@@ -599,6 +641,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         } else {
             prevIsNotNullTreeNode(node, prev);
         }
+        checkSizeBucket(getCountElement((BinaryTreeNode<K, V>) table[index]));
         return value;
     }
 
