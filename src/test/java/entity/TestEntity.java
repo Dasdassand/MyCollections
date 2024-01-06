@@ -8,27 +8,9 @@ public class TestEntity {
     private final Sex sex;
     private static final Random random = new Random();
 
-    public enum Sex {
-        M, F;
-
-        public static Sex randomSex() {
-            Sex[] directions = values();
-            return directions[random.nextInt(directions.length)];
-        }
-
-    }
-
     public TestEntity(int age, Sex sex) {
         this.age = age;
         this.sex = sex;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public Sex getSex() {
-        return sex;
     }
 
     @Override
@@ -43,10 +25,29 @@ public class TestEntity {
         return Objects.hash(age, sex);
     }
 
+    public int getAge() {
+        return age;
+    }
+
+    public Sex getSex() {
+        return sex;
+    }
+
     public static TestEntity build() {
         return new TestEntity(
                 random.nextInt(99),
                 Sex.randomSex()
         );
     }
+
+    public enum Sex {
+        M, F;
+
+        public static Sex randomSex() {
+            Sex[] directions = values();
+            return directions[random.nextInt(directions.length)];
+        }
+
+    }
+
 }
