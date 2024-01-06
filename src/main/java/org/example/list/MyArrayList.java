@@ -391,7 +391,7 @@ public class MyArrayList<E> implements List<E> {
             if (cursor == 0)
                 throw new NoSuchElementException();
             try {
-                return (E) elementData[cursor];
+                return (E) elementData[cursor - 1];
             } catch (ClassCastException e) {
                 e.printStackTrace();
             }
@@ -413,8 +413,8 @@ public class MyArrayList<E> implements List<E> {
             try {
                 if (hasNext()) {
                     elementData[cursor] = null;
-                    size--;
                     moveElements(cursor);
+                    size--;
                 }
             } catch (UnsupportedOperationException | IllegalStateException ex) {
                 ex.printStackTrace();
@@ -424,13 +424,10 @@ public class MyArrayList<E> implements List<E> {
 
         @Override
         public void set(E e) {
-            try {
-                if (hasNext()) {
-                    elementData[cursor] = e;
-                }
-            } catch (IllegalStateException | IllegalArgumentException | ClassCastException |
-                     UnsupportedOperationException ex) {
-                ex.printStackTrace();
+            if (hasNext()) {
+                elementData[cursor] = e;
+            } else {
+                throw new IndexOutOfBoundsException();
             }
         }
 

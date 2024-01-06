@@ -5,11 +5,11 @@ import java.util.*;
 
 public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
 
-    static class Node<K, V> implements Map.Entry<K, V> {
+    public static class Node<K, V> implements MyEntry<K, V> {
         private final int hash;
         private final K key;
         private V value;
-        private Map.Entry<K, V> next;
+        private Node<K, V> next;
 
         public Node(int hash, K key, V value, Node<K, V> next) {
             this.hash = hash;
@@ -38,9 +38,14 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         public void setNext(Node<K, V> next) {
             this.next = next;
         }
+
+        @Override
+        public int getHashCode() {
+            return hash;
+        }
     }
 
-    static class BinaryTreeNode<K, V> implements Map.Entry<K, V> {
+    public static class BinaryTreeNode<K, V> implements MyEntry<K, V> {
         private final int hash;
         private final K key;
         private V value;
@@ -91,15 +96,20 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
             this.value = value;
             return oldValue;
         }
+
+        @Override
+        public int getHashCode() {
+            return hash;
+        }
     }
 
-    private Map.Entry<K, V>[] table;
-
+    private MyEntry<K, V>[] table;
     private static final int DEFAULT_INITIAL_CAPACITY = 16;
     private float loadFactor = 0.75f;
     private int size;
     private final Set<K> keys = new HashSet<>();
     private final Collection<V> values = new ArrayList<>();
+    private boolean flagCast = false;
 
     public MyHashMap() {
         this.table = new Node[DEFAULT_INITIAL_CAPACITY];
@@ -110,18 +120,78 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         this.table = new Node[initialCapacity];
     }
 
-    public MyHashMap(float loadFactor, int size, Entry<K, V>[] table) {
+    public MyHashMap(float loadFactor, int size, MyEntry<K, V>[] table) {
         this.loadFactor = loadFactor;
         this.size = size;
         this.table = table;
-        for (Entry e : table) {
-            keys.add((K) e.getKey());
-            values.add((V) e.getValue());
+        if (!checkConstructorArgumentTable(table, size))
+            throw new IllegalArgumentException();
+        for (MyEntry e : table) {
+            if (e != null) {
+                keys.add((K) e.getKey());
+                values.add((V) e.getValue());
+            }
         }
     }
 
+    private boolean checkConstructorArgumentTable(MyEntry<K, V>[] table, int size) {
+        return size == getCountElementFromTable(table);
+    }
+
+    private int getCountElementFromTable(MyEntry<K, V>[] table) {
+        if (isListTable())
+            return getCountElementFromListTable(table);
+        else
+            return getCountElementFromTreeTable(table);
+    }
+
+    private int getCountElementFromListTable(MyEntry<K, V>[] table) {
+        int count = 0;
+        for (MyEntry<K, V> kvMyEntry : table) {
+            if (kvMyEntry != null) {
+                var node = (Node<K, V>) kvMyEntry;
+                while (true) {
+                    count++;
+                    if (node.next != null) {
+                        node = (Node<K, V>) node.next;
+                    } else break;
+                }
+            }
+        }
+        return count;
+    }
+
+    private int getCountElementFromTreeTable(MyEntry<K, V>[] table) {
+        Integer count = 0;
+        for (MyEntry<K, V> kvMyEntry : table) {
+            if (kvMyEntry != null) {
+                var node = (BinaryTreeNode<K, V>) kvMyEntry;
+                getCountElement(node, count);
+            }
+        }
+        return count;
+    }
+
+    private void getCountElement(BinaryTreeNode<K, V> node, Integer count) {
+        count++;
+        if (node.left != null) {
+            getCountElement(node.left, count);
+        }
+        if (node.right != null) {
+            getCountElement(node.right, count);
+        }
+    }
+
+    public float getLoadFactor() {
+        return loadFactor;
+    }
+
+    public int getSize() {
+        return size;
+    }
+
     private boolean isListTable() {
-        return isListTable();
+        return table.getClass().equals(Node[].class);
     }
 
     @Override
@@ -333,10 +403,12 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
     }
 
     private void checkSizeBucket(int index) {
-        if (index == 8) {
+        if (index == 8 && !flagCast) {
             castListTableToTreeTable();
-        } else if (index == 6) {
+            flagCast = true;
+        } else if (index == 6 && flagCast) {
             castTreeTableToListTable();
+            flagCast = false;
         }
     }
 
@@ -344,8 +416,8 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         BinaryTreeNode<K, V>[] newTable = new BinaryTreeNode[table.length];
         var oldTable = table;
         this.table = newTable;
-        for (int i = 0; i < table.length; i++) {
-            castListToTree((Node<K, V>) oldTable[i]);
+        for (MyEntry<K, V> kvMyEntry : oldTable) {
+            castListToTree((Node<K, V>) kvMyEntry);
         }
     }
 
@@ -570,9 +642,8 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
     }
 
     @Override
-    public Set<Entry<K, V>> entrySet() {
-        Set<Entry<K, V>> set = new HashSet<>();
-        V value;
+    public Set<Map.Entry<K, V>> entrySet() {
+        Set<Map.Entry<K, V>> set = new HashSet<>();
         Collections.addAll(set, table);
         return set;
     }
@@ -624,6 +695,10 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
             return dfs(node.right, key, hash);
         }
         throw new NoSuchElementException();
+    }
+
+    public String getActualTypeTable() {
+        return table.getClass().getTypeName();
     }
 
 }

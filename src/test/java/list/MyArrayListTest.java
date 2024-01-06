@@ -2,19 +2,19 @@ package list;
 
 import entity.TestEntity;
 import org.example.list.MyArrayList;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 
 import java.lang.reflect.Field;
 import java.util.NoSuchElementException;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MyArrayListTest {
     private final MyArrayList<TestEntity> testList = new MyArrayList<>(5);
 
-    @Before
+    @BeforeEach
     public void setUp() {
         testList.clear();
         for (int i = 0; i < 5; i++) {
@@ -42,7 +42,7 @@ public class MyArrayListTest {
             Field field = two.getClass().getDeclaredField("elementData");
             field.setAccessible(true);
             var data = (Object[]) field.get(two);
-            Assert.assertEquals(5, data.length);
+            assertEquals(5, data.length);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }
@@ -161,7 +161,7 @@ public class MyArrayListTest {
     /**
      * SI - start index
      */
-    @Test(expected = NoSuchElementException.class)
+    @Test()
     public void testListIterator() {
         var listIteratorSI0 = testList.listIterator();
         var listIteratorSI4 = testList.listIterator(4);
@@ -175,16 +175,15 @@ public class MyArrayListTest {
         assertEquals(listIteratorSI4.nextIndex(), 5);
         assertEquals(listIteratorSI0.previousIndex(), -1);
         assertEquals(listIteratorSI4.previousIndex(), 3);
-        listIteratorSI0.previous();
+        assertThrows(NoSuchElementException.class, listIteratorSI0::previous);
         assertEquals(testList.listIterator().getClass(), testList.iterator().getClass());
-        assertEquals(listIteratorSI4.previous(), testList.get(1));
+        assertEquals(listIteratorSI4.previous(), testList.get(3));
 
         listIteratorSI0.remove();
         assertFalse(testList.contains(e0));
         assertEquals(testList.size(), 4);
 
-        listIteratorSI4.set(new TestEntity(67, TestEntity.Sex.M));
-        assertTrue(testList.contains(new TestEntity(67, TestEntity.Sex.M)));
+        assertThrows(IndexOutOfBoundsException.class, () -> listIteratorSI4.set(new TestEntity(67, TestEntity.Sex.M)));
 
         listIteratorSI0.add(new TestEntity(23, TestEntity.Sex.F));
         assertTrue(testList.contains(new TestEntity(23, TestEntity.Sex.F)));
