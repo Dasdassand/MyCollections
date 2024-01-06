@@ -90,12 +90,6 @@ public class MyArrayList<E> implements List<E> {
         return true;
     }
 
-    private void resize() {
-        var oldElementData = elementData;
-        elementData = new Object[oldElementData.length * 2];
-        System.arraycopy(oldElementData, 0, elementData, 0, oldElementData.length);
-    }
-
     @Override
     public boolean remove(Object o) {
         var index = getElementIndex(o);
@@ -115,31 +109,6 @@ public class MyArrayList<E> implements List<E> {
             }
         }
     }
-
-    private int getElementIndex(Object o) {
-        if (size == 0)
-            return -1;
-        if (o == null) {
-            for (int i = 0; i < size; i++) {
-                if (elementData[i] == null)
-                    return i;
-            }
-        } else {
-            for (int i = 0; i < size; i++) {
-                if (elementData[i].equals(o))
-                    return i;
-            }
-        }
-        return -1;
-    }
-
-    private void moveElements(int start) {
-        for (int i = start; i < size - 1; i++) {
-            elementData[i] = elementData[i + 1];
-        }
-        elementData[size - 1] = null;
-    }
-
 
     @Override
     public boolean containsAll(Collection<?> c) {
@@ -161,10 +130,6 @@ public class MyArrayList<E> implements List<E> {
         return true;
     }
 
-    private void resize(int size) {
-        elementData = Arrays.copyOf(elementData, elementData.length + size);
-    }
-
     @Override
     public boolean addAll(int index, Collection<? extends E> c) {
         if (index > size || index < 0) {
@@ -178,15 +143,6 @@ public class MyArrayList<E> implements List<E> {
         }
         size += c.size();
         return true;
-    }
-
-    private void moveElementsAdd(int index, int size) {
-        int n = 0;
-        for (int i = index; i < size + index; i++) {
-            elementData[this.size + n] = elementData[i];
-            elementData[i] = null;
-            n++;
-        }
     }
 
     @Override
@@ -223,17 +179,6 @@ public class MyArrayList<E> implements List<E> {
             this.size = count;
         }
         return count > 0;
-    }
-
-    private boolean containsFromIndex(Object e, int index) {
-        if (size == 0 || index == -1) {
-            return false;
-        }
-        for (int i = index; i < size; i++) {
-            if (e.equals(elementData[i]) || elementData[i] == e)
-                return true;
-        }
-        return false;
     }
 
     @Override
@@ -358,6 +303,60 @@ public class MyArrayList<E> implements List<E> {
     @Override
     public Spliterator<E> spliterator() {
         return List.super.spliterator();
+    }
+
+    private void moveElements(int start) {
+        for (int i = start; i < size - 1; i++) {
+            elementData[i] = elementData[i + 1];
+        }
+        elementData[size - 1] = null;
+    }
+
+    private void resize(int size) {
+        elementData = Arrays.copyOf(elementData, elementData.length + size);
+    }
+
+    private void moveElementsAdd(int index, int size) {
+        int n = 0;
+        for (int i = index; i < size + index; i++) {
+            elementData[this.size + n] = elementData[i];
+            elementData[i] = null;
+            n++;
+        }
+    }
+
+    private boolean containsFromIndex(Object e, int index) {
+        if (size == 0 || index == -1) {
+            return false;
+        }
+        for (int i = index; i < size; i++) {
+            if (e.equals(elementData[i]) || elementData[i] == e)
+                return true;
+        }
+        return false;
+    }
+
+    private void resize() {
+        var oldElementData = elementData;
+        elementData = new Object[oldElementData.length * 2];
+        System.arraycopy(oldElementData, 0, elementData, 0, oldElementData.length);
+    }
+
+    private int getElementIndex(Object o) {
+        if (size == 0)
+            return -1;
+        if (o == null) {
+            for (int i = 0; i < size; i++) {
+                if (elementData[i] == null)
+                    return i;
+            }
+        } else {
+            for (int i = 0; i < size; i++) {
+                if (elementData[i].equals(o))
+                    return i;
+            }
+        }
+        return -1;
     }
 
     private class MyListIterator implements ListIterator<E> {
