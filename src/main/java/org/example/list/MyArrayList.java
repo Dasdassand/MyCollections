@@ -4,8 +4,8 @@ import java.util.*;
 import java.util.function.UnaryOperator;
 
 /**
- * @author Dasdassand
  * @param <E> - type
+ * @author Dasdassand
  */
 public class MyArrayList<E> implements List<E> {
 
@@ -143,7 +143,7 @@ public class MyArrayList<E> implements List<E> {
 
     /**
      * @param c collection containing elements to be added to this collection
-     * @return  true - если все элементы коллекции содержаться в списке
+     * @return true - если все элементы коллекции содержаться в списке
      */
     @Override
     public boolean addAll(Collection<? extends E> c) {
@@ -158,7 +158,7 @@ public class MyArrayList<E> implements List<E> {
     /**
      * @param index index at which to insert the first element from the
      *              specified collection
-     * @param c collection containing elements to be added to this list
+     * @param c     collection containing elements to be added to this list
      * @return true
      */
     @Override
@@ -255,7 +255,7 @@ public class MyArrayList<E> implements List<E> {
     }
 
     /**
-     * @param index index at which the specified element is to be inserted
+     * @param index   index at which the specified element is to be inserted
      * @param element element to be inserted
      */
     @Override
@@ -365,7 +365,7 @@ public class MyArrayList<E> implements List<E> {
 
     /**
      * @param index - с какого индекса двигать
-     * @param size - сколько двигать
+     * @param size  - сколько двигать
      */
     private void moveElementsAdd(int index, int size) {
         int n = 0;
@@ -377,7 +377,7 @@ public class MyArrayList<E> implements List<E> {
     }
 
     /**
-     * @param e - элемент
+     * @param e     - элемент
      * @param index - индекс
      * @return - содержится ли элемент e в указанном индексе
      */
@@ -421,6 +421,7 @@ public class MyArrayList<E> implements List<E> {
         }
         return -1;
     }
+
     private class MyListIterator implements ListIterator<E> {
         private int cursor;
 
@@ -505,8 +506,7 @@ public class MyArrayList<E> implements List<E> {
                 }
                 elementData[size] = e;
                 size++;
-            } catch (IllegalArgumentException | ClassCastException |
-                     UnsupportedOperationException ex) {
+            } catch (IllegalArgumentException | ClassCastException ex) {
                 ex.printStackTrace();
             }
 

@@ -3,6 +3,14 @@ package org.example.map;
 import java.io.Serializable;
 import java.util.*;
 
+/**
+ * @param <K>
+ * @param <V> В каждом ментоде, связанном с операциями над таблицей или поиска в ней - реализуются 2 подметода, действующие в случае
+ *            если корзина представляет собой список или же дерево.
+ *            Так же стоит отметить, что большинство алгоритмов схожи между собо на 90%, но из-за разного назначения и избыточнисти
+ *            информации в случае приведение к одному виду - приведение (для меня) их одному универсальному выглядит туманно
+ * @author Dasdassand
+ */
 public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
 
     private MyEntry<K, V>[] table;
@@ -23,6 +31,13 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         this.table = new Node[initialCapacity];
     }
 
+    /**
+     * Конструктор работает только для метода clone()
+     *
+     * @param loadFactor
+     * @param size
+     * @param table
+     */
     private MyHashMap(float loadFactor, int size, MyEntry<K, V>[] table) {
         this.loadFactor = loadFactor;
         this.size = size;
@@ -48,6 +63,10 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         return size == 0;
     }
 
+    /**
+     * @param key key whose presence in this map is to be tested
+     * @return true - если ключ содержится в таблцие
+     */
     @Override
     public boolean containsKey(Object key) {
         if (isListTable())
@@ -56,6 +75,9 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
             return containsKeyTree(key);
     }
 
+    /**
+     * @param m mappings to be stored in this map
+     */
     @Override
     public void putAll(Map<? extends K, ? extends V> m) {
         var keys = m.keySet();
@@ -73,6 +95,10 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         values.clear();
     }
 
+    /**
+     * @param value value whose presence in this map is to be tested
+     * @return true - если ключ содержится в таблцие
+     */
     @Override
     public boolean containsValue(Object value) {
         if (isListTable())
@@ -113,6 +139,10 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         return new MyHashMap<>(this.loadFactor, this.size, this.table);
     }
 
+    /**
+     * @param key key whose mapping is to be removed from the map
+     * @return value удалённого элемента
+     */
     @Override
     public V remove(Object key) {
         keys.remove(key);
@@ -129,6 +159,11 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         throw new IllegalArgumentException();
     }
 
+    /**
+     * @param key   key with which the specified value is to be associated
+     * @param value value to be associated with the specified key
+     * @return в слуае 0-го элмента в ячейке таблицы - null /в случае замены - старое значение/ иначе - value
+     */
     @Override
     public V put(K key, V value) {
         keys.add(key);
@@ -140,6 +175,10 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         }
     }
 
+    /**
+     * @param key the key whose associated value is to be returned
+     * @return value по указанному ключу или  NoSuchElementException)
+     */
     @Override
     public V get(Object key) {
         if (isListTable()) {
@@ -154,6 +193,9 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         throw new NoSuchElementException();
     }
 
+    /**
+     * @return ячейки таблицы являтются листом?
+     */
     private boolean isListTable() {
         return table.getClass().equals(Node[].class);
     }
@@ -221,12 +263,25 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         return false;
     }
 
+    /**
+     * Рекурсивный поиск в глубину, оснванный на value
+     *
+     * @param node  - root
+     * @param value - value
+     * @return true/false
+     */
     private boolean dfsValue(BinaryTreeNode<K, V> node, V value) {
         if (node == null) return false;
         if (node.value == value) return true;
         return dfsValue(node.getLeft(), value) || dfsValue(node.getRight(), value);
     }
 
+    /**
+     * Перебор всех ячеек таблицы
+     *
+     * @param value - value
+     * @return true/false
+     */
     private boolean containsValueTree(Object value) {
         for (BinaryTreeNode<K, V> kvNode : (BinaryTreeNode<K, V>[]) table) {
             try {
@@ -239,6 +294,13 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         return false;
     }
 
+    /**
+     * Проверка поступающих аргументов для private конструктора
+     *
+     * @param table
+     * @param size
+     * @return true/false
+     */
     private boolean checkConstructorArgumentTable(MyEntry<K, V>[] table, int size) {
         return size == getCountElementFromTable(table);
     }
@@ -247,6 +309,13 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         return getTreeNode(key).value;
     }
 
+    /**
+     * Подетод метода put, для вставки элементов в таблицу, основанную на листах
+     *
+     * @param key
+     * @param value
+     * @return тоже самое что и метод put {@link #put(K, V)}
+     */
     private V putNode(K key, V value) {
         int index = getIndex(key), count = 0;
         if (table[index] == null) {
@@ -283,6 +352,13 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         }
     }
 
+    /**
+     * Подетод метода put, для вставки элементов в таблицу, основанную на лситах
+     *
+     * @param key
+     * @param value
+     * @return тоже самое что и метод put {@link #put(K, V)}
+     */
     private V putTree(K key, V value) {
         int index = getIndex(key);
         if (table[index] == null) {
@@ -300,6 +376,15 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
 
     }
 
+    /**
+     * Вставка, осннованная на поиске в глубине
+     *
+     * @param node  - root
+     * @param hash
+     * @param value
+     * @param key
+     * @return тоже самое что и метод {@link #put(K, V)}
+     */
     private V putUseDFS(BinaryTreeNode<K, V> node, int hash, V value, K key) {
         if (node.hash == hash) {
             node.value = value;
@@ -350,7 +435,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         while (true) {
             put(oldNode.key, oldNode.value);
             if (oldNode.next != null) {
-                oldNode = (Node<K, V>) oldNode.next;
+                oldNode =  oldNode.next;
             } else
                 break;
         }
@@ -394,6 +479,13 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         checkSizeBucket(getMaxElementFromBuckets());
     }
 
+    /**
+     * Главное отличие от других методов поиска в глубину - сохранения ссылки на родителя узла, как и у
+     * {@link #removeFromTreeTable(K)}
+     *
+     * @param key
+     * @return удалённое значение {@link #remove(Object)}
+     */
     private V removeFromListTable(K key) {
         var index = getIndex(key);
         var nodeList = (Node<K, V>) table[index];
@@ -408,7 +500,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
                 }
             } else if (nodeList.next != null) {
                 prev = nodeList;
-                nodeList =  nodeList.next;
+                nodeList = nodeList.next;
             } else break;
         }
         if (count == 0)
@@ -423,6 +515,13 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         return value;
     }
 
+    /**
+     * Главное отличие от других методов поиска в глубину - сохранения ссылки на родителя узла
+     * {@link #removeFromListTable(K)}
+     *
+     * @param key
+     * @return удалённое значение {@link #remove(Object)}
+     */
     private V removeFromTreeTable(K key) {
         int hash = Objects.hashCode(key);
         int index = getIndex(key);
@@ -464,11 +563,21 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         return value;
     }
 
+    /**
+     * Удаление в случае, если узел корневой (для дерева)
+     *
+     * @param node
+     */
     private void prevIsNullTreeNode(BinaryTreeNode<K, V> node) {
         putAllUseDFS(node.right);
         putAllUseDFS(node.left);
     }
 
+    /**
+     * Удаление в случае, если узел не корневой (для дерева)
+     *
+     * @param node
+     */
     private void prevIsNotNullTreeNode(BinaryTreeNode<K, V> node, BinaryTreeNode<K, V> prev) {
         if (prev.getRight().equals(node)) {
             prev.setRight(null);
@@ -482,6 +591,14 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
             putAllUseDFS(node.right);
     }
 
+    /**
+     * Классический посик в глубину
+     *
+     * @param node
+     * @param key
+     * @param hash
+     * @return узел или NoSuchElementException
+     */
     private BinaryTreeNode<K, V> dfs(BinaryTreeNode<K, V> node, K key, int hash) {
         if (node.getHash() == hash) {
             if (node.getKey().equals(key))
@@ -496,6 +613,11 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         throw new NoSuchElementException();
     }
 
+    /**
+     * Увеличивает длинну таблицы, состояющию из листов, в 2 раза
+     *
+     * @param oldTable
+     */
     private void resizeListTable(Node<K, V>[] oldTable) {
         this.table = new Node[oldTable.length * 2];
         for (Node<K, V> kvNode : oldTable) {
@@ -513,6 +635,11 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
 
     }
 
+    /**
+     * Увеличивает длинну таблицы, состояющию из деревьев, в 2 раза
+     *
+     * @param oldTable
+     */
     private void resizeTreeTable(BinaryTreeNode<K, V>[] oldTable) {
         this.table = new BinaryTreeNode[oldTable.length * 2];
         for (BinaryTreeNode<K, V> node : oldTable) {
@@ -532,6 +659,10 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         }
     }
 
+    /**
+     * @param table
+     * @return общее кол-во элементов в таблице
+     */
     private int getCountElementFromTable(MyEntry<K, V>[] table) {
         if (isListTable())
             return getCountElementFromListTable(table);
@@ -547,7 +678,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
                 while (true) {
                     count++;
                     if (node.next != null) {
-                        node =node.next;
+                        node = node.next;
                     } else break;
                 }
             }
