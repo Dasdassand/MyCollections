@@ -409,7 +409,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
                 }
             } else if (nodeList.next != null) {
                 prev = nodeList;
-                nodeList = (Node<K, V>) nodeList.next;
+                nodeList = nodeList.next;
             } else break;
         }
         if (count == 0)
