@@ -3,7 +3,12 @@ package org.example.list;
 import java.util.*;
 import java.util.function.UnaryOperator;
 
+/**
+ * @author Dasdassand
+ * @param <E> - type
+ */
 public class MyArrayList<E> implements List<E> {
+
     private static final int DEFAULT_CAPACITY = 10;
     private Object[] elementData;
 
@@ -37,6 +42,10 @@ public class MyArrayList<E> implements List<E> {
         return size == 0;
     }
 
+    /**
+     * @param e element whose presence in this list is to be tested
+     * @return true - если элмент содержится в списке
+     */
     @Override
     public boolean contains(Object e) {
         if (size == 0)
@@ -80,6 +89,10 @@ public class MyArrayList<E> implements List<E> {
         return a;
     }
 
+    /**
+     * @param e element whose presence in this collection is to be ensured
+     * @return always true :)
+     */
     @Override
     public boolean add(E e) {
         if (size == elementData.length) {
@@ -90,6 +103,10 @@ public class MyArrayList<E> implements List<E> {
         return true;
     }
 
+    /**
+     * @param o element to be removed from this list, if present
+     * @return true - если удаление прошло успешно
+     */
     @Override
     public boolean remove(Object o) {
         var index = getElementIndex(o);
@@ -110,6 +127,10 @@ public class MyArrayList<E> implements List<E> {
         }
     }
 
+    /**
+     * @param c collection to be checked for containment in this list
+     * @return true - если все элементы коллекции содержаться в списке
+     */
     @Override
     public boolean containsAll(Collection<?> c) {
         for (Object o :
@@ -120,6 +141,10 @@ public class MyArrayList<E> implements List<E> {
         return true;
     }
 
+    /**
+     * @param c collection containing elements to be added to this collection
+     * @return  true - если все элементы коллекции содержаться в списке
+     */
     @Override
     public boolean addAll(Collection<? extends E> c) {
         resize(c.size());
@@ -130,6 +155,12 @@ public class MyArrayList<E> implements List<E> {
         return true;
     }
 
+    /**
+     * @param index index at which to insert the first element from the
+     *              specified collection
+     * @param c collection containing elements to be added to this list
+     * @return true
+     */
     @Override
     public boolean addAll(int index, Collection<? extends E> c) {
         if (index > size || index < 0) {
@@ -145,6 +176,10 @@ public class MyArrayList<E> implements List<E> {
         return true;
     }
 
+    /**
+     * @param c collection containing elements to be removed from this list
+     * @return true - если хоть один элемент из коллекции был удалён из списка
+     */
     @Override
     public boolean removeAll(Collection<?> c) {
         if (size == 0) {
@@ -159,6 +194,10 @@ public class MyArrayList<E> implements List<E> {
         return count > 0;
     }
 
+    /**
+     * @param c collection containing elements to be retained in this list
+     * @return true - если хоть один элемнт был сохранён
+     */
     @Override
     public boolean retainAll(Collection<?> c) {
         if (size == 0) {
@@ -215,6 +254,10 @@ public class MyArrayList<E> implements List<E> {
         return (E) tmpElement;
     }
 
+    /**
+     * @param index index at which the specified element is to be inserted
+     * @param element element to be inserted
+     */
     @Override
     public void add(int index, E element) {
         if (index > size || index < 0) {
@@ -228,6 +271,10 @@ public class MyArrayList<E> implements List<E> {
         size++;
     }
 
+    /**
+     * @param index the index of the element to be removed
+     * @return true - если удаление прошло успешно
+     */
     @Override
     public E remove(int index) {
         if (index > size || index < 0) {
@@ -316,6 +363,10 @@ public class MyArrayList<E> implements List<E> {
         elementData = Arrays.copyOf(elementData, elementData.length + size);
     }
 
+    /**
+     * @param index - с какого индекса двигать
+     * @param size - сколько двигать
+     */
     private void moveElementsAdd(int index, int size) {
         int n = 0;
         for (int i = index; i < size + index; i++) {
@@ -325,6 +376,11 @@ public class MyArrayList<E> implements List<E> {
         }
     }
 
+    /**
+     * @param e - элемент
+     * @param index - индекс
+     * @return - содержится ли элемент e в указанном индексе
+     */
     private boolean containsFromIndex(Object e, int index) {
         if (size == 0 || index == -1) {
             return false;
@@ -336,12 +392,19 @@ public class MyArrayList<E> implements List<E> {
         return false;
     }
 
+    /**
+     * Знаю, что не очень, но не с++ писать не особо умею
+     */
     private void resize() {
         var oldElementData = elementData;
         elementData = new Object[oldElementData.length * 2];
         System.arraycopy(oldElementData, 0, elementData, 0, oldElementData.length);
     }
 
+    /**
+     * @param o - элемени, индекс которого, нужно найти
+     * @return -1 - в случае отсутвия элмента, иначе - его индекс
+     */
     private int getElementIndex(Object o) {
         if (size == 0)
             return -1;
@@ -358,7 +421,6 @@ public class MyArrayList<E> implements List<E> {
         }
         return -1;
     }
-
     private class MyListIterator implements ListIterator<E> {
         private int cursor;
 

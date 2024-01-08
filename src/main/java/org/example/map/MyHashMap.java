@@ -23,7 +23,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
         this.table = new Node[initialCapacity];
     }
 
-    public MyHashMap(float loadFactor, int size, MyEntry<K, V>[] table) {
+    private MyHashMap(float loadFactor, int size, MyEntry<K, V>[] table) {
         this.loadFactor = loadFactor;
         this.size = size;
         this.table = new MyEntry[table.length];
@@ -110,8 +110,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
 
     @Override
     public MyHashMap<K, V> clone() {
-        MyHashMap<K, V> clone = new MyHashMap<>(this.loadFactor, this.size, this.table);
-        return clone;
+        return new MyHashMap<>(this.loadFactor, this.size, this.table);
     }
 
     @Override
@@ -170,7 +169,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
                     if (node.key.equals(key))
                         return true;
                 } else if (!(node.next == null)) {
-                    node = (Node<K, V>) node.next;
+                    node = node.next;
                 }
             }
         } catch (ClassCastException exception) {
@@ -214,7 +213,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
                     return true;
                 }
                 if (node.next != null) {
-                    node = (Node<K, V>) node.next;
+                    node = node.next;
                 } else
                     break;
             } while (true);
@@ -409,7 +408,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
                 }
             } else if (nodeList.next != null) {
                 prev = nodeList;
-                nodeList = nodeList.next;
+                nodeList =  nodeList.next;
             } else break;
         }
         if (count == 0)
@@ -505,7 +504,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
                 while (true) {
                     put(node.key, node.value);
                     if (node.next != null) {
-                        node = (Node<K, V>) node.next;
+                        node = node.next;
                     } else
                         break;
                 }
@@ -548,7 +547,7 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
                 while (true) {
                     count++;
                     if (node.next != null) {
-                        node = (Node<K, V>) node.next;
+                        node =node.next;
                     } else break;
                 }
             }
@@ -659,6 +658,10 @@ public class MyHashMap<K, V> implements Map<K, V>, Cloneable, Serializable {
 
     public String getActualTypeTable() {
         return table.getClass().getTypeName();
+    }
+
+    private interface MyEntry<K, V> extends Map.Entry<K, V> {
+        int getHashCode();
     }
 
     public static class Node<K, V> implements MyEntry<K, V> {

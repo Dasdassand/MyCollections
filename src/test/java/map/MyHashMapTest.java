@@ -29,7 +29,6 @@ public class MyHashMapTest {
         MyHashMap<Integer, Integer> mapOne = new MyHashMap<>();
         assertTrue(mapOne.isEmpty());
         assertEquals(0.75, mapOne.getLoadFactor(), 0.0);
-        assertThrows(IllegalArgumentException.class, () -> new MyHashMap<Integer, Integer>(1, 10, new MyHashMap.Node[11]));
         mapOne = new MyHashMap<>(10, 0.5f);
         assertEquals(0.5f, mapOne.getLoadFactor(), 0.0);
 
